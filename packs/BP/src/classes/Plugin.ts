@@ -1,5 +1,4 @@
 import {
-  EntityQueryOptions,
   Player,
   PlayerInventoryComponentContainer,
   world,

@@ -1,7 +1,6 @@
-import { Quaternion, Vector3 } from "gametest-maths";
+import { Vector3 } from "gametest-maths";
 import {
   CommandHandler,
-  DataBase,
   Debug,
   MBCPlayer,
   Raycast,
@@ -9,19 +8,15 @@ import {
   Scoreboard,
 } from "mbcore-gametest";
 import {
-  BlockAreaSize,
   Direction,
   Entity,
   EntityQueryOptions,
-  EntityQueryScoreOptions,
   Location,
   Player,
   Vector,
   world,
 } from "mojang-minecraft";
-import { Utils } from "../Utils";
 
-const portals = new DataBase("portals");
 const cooldown = Scoreboard.initialize("portalCooldown");
 const DEG = 180 / Math.PI;
 export class PortalHandler {
@@ -38,7 +33,7 @@ export class PortalHandler {
 
   setVelocity(entity: Entity | Player, velocity: Vector) {
     if (entity instanceof Player) {
-      Utils.setPlayerVelocity(entity, velocity, true);
+      MBCPlayer.getByPlayer(entity).setVelocity(velocity);
     } else entity.setVelocity(velocity);
   }
 

@@ -1,4 +1,5 @@
 import { MBCPlayer } from "mbcore-gametest";
+import { UID } from "mbcore-gametest/src/classes/UID";
 import {
   Dimension,
   Entity,
@@ -6,7 +7,6 @@ import {
   EntityRaycastOptions,
   Vector,
 } from "mojang-minecraft";
-import { Utils } from "../../Utils";
 import { Item } from "../Item";
 
 export class GravityGunItem extends Item {
@@ -26,18 +26,7 @@ export class GravityGunItem extends Item {
 
     const ent = plr.getEntitiesFromViewVector()[0];
     if (!ent) return true;
-    let id: string;
-    ent.getTags().forEach((v) => {
-      const m = v.match(/<\$mbc;entityUUID=(.*?);\/>/);
-      if (m) {
-        if (!id) id = m[1];
-        else ent.removeTag(m[0]);
-      }
-    });
-    if (!id) {
-      id = Utils.create_UUID();
-      ent.addTag(`<$mbc;entityUUID=${id};/>`);
-    }
+    let id = UID.getUID(ent);
     GravityGunItem.plrEnts.set(plr.name, id);
     return true;
   }
