@@ -82,14 +82,18 @@ export class Plugin {
       let constructItem = this.itemRegistry.get(evd.item.id);
       if (constructItem) {
         let item = new constructItem(evd.item, this.itemRegistry);
-        if (item.beforeUseOn)
-          evd.cancel = item.beforeUseOn(
-            new Vector3(evd.blockLocation),
-            plr,
-            evd.blockFace,
-            evd.faceLocationX,
-            evd.faceLocationY
-          );
+        try {
+          if (item.beforeUseOn)
+            evd.cancel = item.beforeUseOn(
+              new Vector3(evd.blockLocation),
+              plr,
+              evd.blockFace,
+              evd.faceLocationX,
+              evd.faceLocationY
+            );
+        } catch (err) {
+          console.error(err);
+        }
       }
     });
   }
@@ -101,8 +105,12 @@ export class Plugin {
       if (!constructItem) return;
 
       let item = new constructItem(evd.item, this.itemRegistry);
-      if (item.beforeUse)
-        evd.cancel = item.beforeUse(MBCPlayer.getByPlayer(evd.source));
+      try {
+        if (item.beforeUse)
+          evd.cancel = item.beforeUse(MBCPlayer.getByPlayer(evd.source));
+      } catch (err) {
+        console.error(err);
+      }
     });
   }
   private registerItemUseOnListener() {
@@ -114,26 +122,34 @@ export class Plugin {
         new Vector3(evd.blockLocation),
         plr.dimensionId
       );
-      if (block && block.interact)
-        block.interact(
-          evd.item,
-          plr,
-          evd.blockFace,
-          evd.faceLocationX,
-          evd.faceLocationY
-        );
-
-      let constructItem = this.itemRegistry.get(evd.item.id);
-      if (constructItem) {
-        let item = new constructItem(evd.item, this.itemRegistry);
-        if (item.onUseOn)
-          item.onUseOn(
-            new Vector3(evd.blockLocation),
+      try {
+        if (block && block.interact)
+          block.interact(
+            evd.item,
             plr,
             evd.blockFace,
             evd.faceLocationX,
             evd.faceLocationY
           );
+      } catch (err) {
+        console.error(err);
+      }
+
+      let constructItem = this.itemRegistry.get(evd.item.id);
+      if (constructItem) {
+        let item = new constructItem(evd.item, this.itemRegistry);
+        try {
+          if (item.onUseOn)
+            item.onUseOn(
+              new Vector3(evd.blockLocation),
+              plr,
+              evd.blockFace,
+              evd.faceLocationX,
+              evd.faceLocationY
+            );
+        } catch (err) {
+          console.error(err);
+        }
       }
     });
   }
@@ -145,7 +161,11 @@ export class Plugin {
       if (!constructItem) return;
 
       let item = new constructItem(evd.item, this.itemRegistry);
-      if (item.onUse) item.onUse(MBCPlayer.getByPlayer(evd.source));
+      try {
+        if (item.onUse) item.onUse(MBCPlayer.getByPlayer(evd.source));
+      } catch (err) {
+        console.error(err);
+      }
     });
   }
 
@@ -163,7 +183,11 @@ export class Plugin {
         } catch {
           return;
         }
-        if (v.tick) v.tick(evd.currentTick, evd.deltaTime);
+        try {
+          if (v.tick) v.tick(evd.currentTick, evd.deltaTime);
+        } catch (err) {
+          console.error(err);
+        }
       });
 
       for (let p of world.getPlayers()) {
@@ -176,8 +200,16 @@ export class Plugin {
         if (!constructItem) continue;
 
         let item = new constructItem(itemStack, this.itemRegistry);
-        if (item.whileHeld)
-          item.whileHeld(MBCPlayer.getByPlayer(p), evd.currentTick, evd.deltaTime);
+        try {
+          if (item.whileHeld)
+            item.whileHeld(
+              MBCPlayer.getByPlayer(p),
+              evd.currentTick,
+              evd.deltaTime
+            );
+        } catch (err) {
+          console.error(err);
+        }
       }
 
       this.portalHandler.update(evd.currentTick, evd.deltaTime);
@@ -197,12 +229,16 @@ export class Plugin {
       if (!constructItem) return;
 
       let item = new constructItem(itemStack, this.itemRegistry);
-      if (item.onHit)
-        item.onHit(
-          MBCPlayer.getByPlayer(evd.entity),
-          evd.hitEntity ?? null,
-          evd.hitBlock ?? null
-        );
+      try {
+        if (item.onHit)
+          item.onHit(
+            MBCPlayer.getByPlayer(evd.entity),
+            evd.hitEntity ?? null,
+            evd.hitBlock ?? null
+          );
+      } catch (err) {
+        console.error(err);
+      }
     });
   }
 

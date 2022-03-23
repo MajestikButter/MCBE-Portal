@@ -24,7 +24,7 @@ export class GravityGunItem extends Item {
     const o = new EntityRaycastOptions();
     o.maxDistance = 10;
 
-    const ent = plr.getEntitiesFromViewVector()[0];
+    const ent = plr.getEntitiesFromViewVector(o)[0];
     if (!ent) return true;
     let id = UID.getUID(ent);
     GravityGunItem.plrEnts.set(plr.name, id);
@@ -33,7 +33,7 @@ export class GravityGunItem extends Item {
 
   getEntById(id: string, dimension: Dimension) {
     const o = new EntityQueryOptions();
-    o.tags = [`<$mbc;entityUUID=${id};/>`];
+    o.tags = [`<$mbc;uid=${id};/>`];
     o.closest = 1;
     return dimension.getEntities(o)[Symbol.iterator]().next().value as Entity;
   }
