@@ -1,0 +1,5 @@
+{
+    "exports": {
+        "src": "BP/scripts/modules/gametest-maths" 
+    }
+}

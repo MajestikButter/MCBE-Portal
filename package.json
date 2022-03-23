@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@types/mojang-minecraft": "^0.1.4",
+    "gametest-maths": "^1.2.1",
+    "mbcore-gametest": "^1.10.2"
+  }
+}
