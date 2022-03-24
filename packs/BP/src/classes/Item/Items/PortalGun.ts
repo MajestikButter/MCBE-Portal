@@ -58,20 +58,6 @@ export class PortalGunItem extends Item {
     );
     portal.addTag(ownerTag);
 
-    // plr.dimension.spawnItem(
-    //   new ItemStack(Items.get("minecraft:stick")),
-    //   colPos.toLocation()
-    // );
-
-    // const origin = cast.getOrigin();
-    // const dir = cast.getDirection();
-    // Debug.visualize(
-    //   origin,
-    //   dir.mul(origin.distance(colPos), new Vector3()),
-    //   plr.dimension,
-    //   undefined,
-    //   20
-    // );
     return true;
   }
 }

@@ -61,6 +61,12 @@ export class PortalHandler {
     }
   }
 
+  getAngles(vec: Vector3 | Vector, inDegrees = false) {
+    return {
+      x: Math.asin(vec.y) * (inDegrees ? DEG : 1),
+      y: Math.atan2(-vec.x, vec.z) * (inDegrees ? DEG : 1),
+    };
+  }
   teleport(
     entity: Entity | Player,
     inP: {
@@ -89,11 +95,19 @@ export class PortalHandler {
     const vel = plr ? (plrVel as Vector) : entity.velocity;
     const mag = Vector.distance(vel, Vector.zero);
 
-    const [x, y] = [
-      Math.asin(outP.dir.y) * DEG,
-      Math.atan2(-outP.dir.x, outP.dir.z) * DEG,
-    ];
+    const entAngles = this.getAngles(entity.viewVector);
+    const inAngles = this.getAngles(inP.dir);
+    const angleDifs = {
+      x: entAngles.x - inAngles.x,
+      y: entAngles.y - inAngles.y,
+    };
 
+    const viO = new Vector3(outP.dir)
+      .mul(-1)
+      .rotateX(-angleDifs.x)
+      .rotateY(-angleDifs.y);
+
+    const { x, y } = this.getAngles(viO, true);
     const outPos = Vector.add(
       new Vector(
         outP.entity.location.x,
