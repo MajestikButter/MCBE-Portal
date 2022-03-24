@@ -1,8 +1,8 @@
 import { Vector3 } from "gametest-maths";
 import {
   CommandHandler,
-  Debug,
   MBCPlayer,
+  MinecraftParticles,
   Raycast,
   RaycastProperties,
   Scoreboard,
@@ -12,6 +12,7 @@ import {
   Entity,
   EntityQueryOptions,
   Location,
+  MolangVariableMap,
   Player,
   Vector,
   world,
@@ -80,6 +81,8 @@ export class PortalHandler {
       entity: Entity;
     }
   ) {
+    // Grab either previous player velocity or current depending on whether the current velocity is less than the previous velocity.
+    // This is to prevent issues that may occur if a player hits a block before the portal teleports them.
     if (entity instanceof Player) {
       var plr = MBCPlayer.getByPlayer(entity);
       var plrVel: Vector | Vector3 = plr.velocity;
@@ -93,21 +96,26 @@ export class PortalHandler {
           : new Vector(plrVel.x, plrVel.y, plrVel.z);
     }
     const vel = plr ? (plrVel as Vector) : entity.velocity;
+    // Calculate the magnitude of the velocity vector
     const mag = Vector.distance(vel, Vector.zero);
 
+    // Get the angles in radians for the entity and in portal direction
     const entAngles = this.getAngles(entity.viewVector);
     const inAngles = this.getAngles(inP.dir);
+    // Get the difference between them
     const angleDifs = {
       x: entAngles.x - inAngles.x,
       y: entAngles.y - inAngles.y,
     };
 
+    // Calculate the final angles to be applied to the entity
     const viO = new Vector3(outP.dir)
       .mul(-1)
       .rotateX(-angleDifs.x)
       .rotateY(-angleDifs.y);
-
     const { x, y } = this.getAngles(viO, true);
+
+    // Offset the final position
     const outPos = Vector.add(
       new Vector(
         outP.entity.location.x,
@@ -116,17 +124,19 @@ export class PortalHandler {
       ),
       new Vector(outP.dir.x, outP.dir.y * 2, outP.dir.z)
     );
+    const fLoc = new Location(outPos.x, outPos.y, outPos.z);
     const fVel = Vector.multiply(
       new Vector(outP.dir.x, outP.dir.y, outP.dir.z),
       mag
     );
-    const fLoc = new Location(outPos.x, outPos.y, outPos.z);
+    // Teleport and apply velocity to entity
     entity.teleport(fLoc, outP.entity.dimension, -x, y);
     if (plr) {
       plr.setVelocity(fVel);
     } else {
       this.setVelocity(entity, fVel);
     }
+    // Apply the cooldown to prevent issues with portals looping
     cooldown.set(entity, 3);
   }
 
@@ -135,7 +145,8 @@ export class PortalHandler {
       new Vector3(portal.location),
       new Vector3(dir),
     ];
-    Debug.visualize(origin, direction.mul(2, new Vector3()), portal.dimension);
+    // Visualizes the raycast used to get entities
+    // Debug.visualize(origin, direction.mul(2, new Vector3()), portal.dimension);
     return Raycast.cast(
       origin.sub(direction.mul(0.1, new Vector3())),
       direction,
@@ -152,7 +163,7 @@ export class PortalHandler {
     ).getEntities();
   }
 
-  runPortals(inColorTag: string, outColorTag: string) {
+  runPortals(inColorTag: string, outColorTag: string, particle: string) {
     const ino = new EntityQueryOptions();
     ino.tags = [inColorTag];
 
@@ -163,17 +174,29 @@ export class PortalHandler {
       for (const inPortal of dim.getEntities(ino)) {
         if (dim !== inPortal.dimension) continue;
 
+        // Get in face and direction
+        const inFace = this.getFace(inPortal);
+        const inDir = this.getDir(inPortal);
+
+        // Display particle
+        inPortal.dimension.spawnParticle(
+          particle,
+          new Vector3(inPortal.location).add(new Vector3(inDir).mul(0.1)).toLocation(),
+          new MolangVariableMap()
+        );
+
+        // Get paired portal entity
         outo.tags = [outColorTag, this.getOwnerTag(inPortal)];
         outo.location = inPortal.location;
         const outPortal = dim.getEntities(outo)[Symbol.iterator]().next()
           .value as Entity;
         if (!outPortal) continue;
 
-        const inFace = this.getFace(inPortal);
-        const inDir = this.getDir(inPortal);
+        // Get out face and direction
         const outFace = this.getFace(outPortal);
         const outDir = this.getDir(outPortal);
 
+        // Teleport all entities that are not on cooldown touching the portal
         for (let ent of this.getEntities(inPortal, inDir)) {
           this.teleport(
             ent,
@@ -181,6 +204,7 @@ export class PortalHandler {
             { dir: outDir, face: outFace, entity: outPortal }
           );
         }
+        // Apply cooldowns to entities touching the portal, regardless of if they have a cooldown already
         for (let ent of this.getEntities(inPortal, inDir, true)) {
           cooldown.set(ent, 3);
         }
@@ -192,16 +216,18 @@ export class PortalHandler {
     cooldown.add("@e[scores={portalCooldown=1..}]", -1);
     cooldown.reset("@e[scores={portalCooldown=..0}]");
     CommandHandler.run(
-      `execute @e[tag="<$mbp;portal=blue;/>"] ~~~ particle minecraft:basic_smoke_particle`
-    );
-    CommandHandler.run(
-      `execute @e[tag="<$mbp;portal=red;/>"] ~~~ particle minecraft:basic_flame_particle`
-    );
-    CommandHandler.run(
       `execute @e[type=mbp:portal] ~~~ particle minecraft:basic_portal_particle`
     );
 
-    this.runPortals("<$mbp;portal=red;/>", "<$mbp;portal=blue;/>");
-    this.runPortals("<$mbp;portal=blue;/>", "<$mbp;portal=red;/>");
+    this.runPortals(
+      "<$mbp;portal=red;/>",
+      "<$mbp;portal=blue;/>",
+      MinecraftParticles.basicFlame
+    );
+    this.runPortals(
+      "<$mbp;portal=blue;/>",
+      "<$mbp;portal=red;/>",
+      MinecraftParticles.blueFlame
+    );
   }
 }

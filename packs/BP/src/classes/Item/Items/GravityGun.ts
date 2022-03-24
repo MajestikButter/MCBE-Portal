@@ -44,9 +44,7 @@ export class GravityGunItem extends Item {
     const id = GravityGunItem.plrEnts.get(p.name);
     if (!id) return;
     const ent = this.getEntById(id, p.dimension);
-    if (!ent) {
-      return;
-    }
+    if (!ent) return;
 
     const sPos = p.headLocation;
     const tPos = Vector.subtract(

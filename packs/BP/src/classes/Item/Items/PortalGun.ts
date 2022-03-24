@@ -1,6 +1,17 @@
 import { Vector3 } from "gametest-maths";
-import { MBCPlayer, Raycast, RaycastProperties } from "mbcore-gametest";
-import { Direction, Vector } from "mojang-minecraft";
+import {
+  Debug,
+  MBCPlayer,
+  MinecraftParticles,
+  Raycast,
+  RaycastProperties,
+} from "mbcore-gametest";
+import {
+  BlockAreaSize,
+  Direction,
+  EntityQueryOptions,
+  Vector,
+} from "mojang-minecraft";
 import { Item } from "../Item";
 
 export class PortalGunItem extends Item {
@@ -13,6 +24,13 @@ export class PortalGunItem extends Item {
       Vector.left,
       Vector.right,
     ][face];
+  }
+
+  getParticleByTag(tag: string) {
+    return {
+      "<$mbp;portal=blue;/>": MinecraftParticles.blueFlame,
+      "<$mbp;portal=red;/>": MinecraftParticles.basicFlame,
+    }[tag];
   }
 
   beforeUse(player: MBCPlayer): boolean {
@@ -30,18 +48,10 @@ export class PortalGunItem extends Item {
     );
     if (!cast.hitBlock()) return true;
 
-    const colorTag = plr.isSneaking
-      ? "<$mbp;portal=blue;/>"
-      : "<$mbp;portal=red;/>";
-    const ownerTag = `<$mbp;owner=${player.uid};/>`;
-
-    player.executeCommand(
-      `event entity @e[tag="${colorTag}",tag="${ownerTag}"] portal:remove`
-    );
-
     const face = cast.getBlockFace();
     const dir = this.getDirByFace(face);
 
+    // Offset portal spawn depending on direction vector
     const colPos = new Vector3(cast.getBlock().location).add(new Vector3(dir));
     colPos.x = !dir.x ? Math.floor(colPos.x) + 0.5 : colPos.x;
     colPos.y = !dir.y ? Math.floor(colPos.y) + 0.5 : colPos.y;
@@ -50,6 +60,37 @@ export class PortalGunItem extends Item {
     colPos.y += dir.y < 0 ? 1 : 0;
     colPos.z += dir.z < 0 ? 1 : 0;
 
+    // Decide portal color
+    const colorTag = plr.isSneaking
+      ? "<$mbp;portal=red;/>"
+      : "<$mbp;portal=blue;/>";
+
+    // Visualize raycast
+    const dist = colPos.distance(cast.getOrigin());
+    Debug.visualize(
+      cast.getOrigin(),
+      cast.getDirection().mul(dist),
+      plr.dimension,
+      this.getParticleByTag(colorTag),
+      dist * 4
+    );
+
+    // Check for existing portal around spawn location
+    const o = new EntityQueryOptions();
+    o.location = colPos.floor(new Vector3()).add(0, -1, 0).toLocation();
+    o.volume = new BlockAreaSize(1, 2, 1);
+    o.type = "mbp:portal";
+    if (plr.dimension.getEntities(o)[Symbol.iterator]().next().value)
+      return true;
+
+    const ownerTag = `<$mbp;owner=${player.uid};/>`;
+
+    // Remove matching existing portal
+    player.executeCommand(
+      `event entity @e[tag="${colorTag}",tag="${ownerTag}"] portal:remove`
+    );
+
+    // Spawn portal and add attributes as tags
     const portal = plr.dimension.spawnEntity("mbp:portal", colPos.toLocation());
     portal.addTag(colorTag);
     portal.addTag(`<$mbp;portalFace=${face};/>`);

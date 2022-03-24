@@ -1,0 +1,13 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "mbp:gravity_gun",
+      "category": "Equipment"
+    },
+    "components": {
+      "minecraft:icon": "gravity_gun",
+      "minecraft:render_offsets": "bow"
+    }
+  }
+}

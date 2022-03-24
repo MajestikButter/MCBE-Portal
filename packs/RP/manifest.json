@@ -1,0 +1,18 @@
+{
+  "format_version": 2,
+  "header": {
+    "description": "",
+    "name": "§l§4Portal Concept",
+    "uuid": "558e74eb-ae3a-473a-89f6-80802b75c151",
+    "version": [1, 0, 1],
+    "min_engine_version": [1, 18, 20]
+  },
+  "modules": [
+    {
+      "description": "Resource Module",
+      "type": "resources",
+      "uuid": "96e01985-f41b-4d75-98b0-44fbf2acafa6",
+      "version": [1, 0, 1]
+    }
+  ]
+}

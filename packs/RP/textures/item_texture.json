@@ -1,0 +1,10 @@
+{
+  "texture_data": {
+    "portal_gun": {
+      "textures": ["textures/items/amethyst_shard"]
+    },
+    "gravity_gun": {
+      "textures": ["textures/items/egg"]
+    }
+  }
+}

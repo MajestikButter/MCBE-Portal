@@ -6,8 +6,8 @@ export class ItemRegistrar {
   private registry: ItemRegistry;
 
   registerItems() {
-    this.registry.register('minecraft:stick', GravityGunItem);
-    this.registry.register('minecraft:feather', PortalGunItem);
+    this.registry.register('mbp:gravity_gun', GravityGunItem);
+    this.registry.register('mbp:portal_gun', PortalGunItem);
   }
 
   constructor(registry: ItemRegistry) {
