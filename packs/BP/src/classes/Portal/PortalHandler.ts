@@ -169,11 +169,13 @@ export class PortalHandler {
 
     const outo = new EntityQueryOptions();
     outo.closest = 1;
+    
+    // Locks the query to the dimension
+    ino.minDistance = 0;
+    outo.minDistance = 0;
 
     for (const dim of this.dims) {
       for (const inPortal of dim.getEntities(ino)) {
-        if (dim !== inPortal.dimension) continue;
-
         // Get in face and direction
         const inFace = this.getFace(inPortal);
         const inDir = this.getDir(inPortal);
