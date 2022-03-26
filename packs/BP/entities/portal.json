@@ -29,6 +29,9 @@
       "minecraft:collision_box": {
         "height": 0,
         "width": 0
+      },
+      "minecraft:physics": {
+        "has_gravity": false
       }
     },
     "events": {

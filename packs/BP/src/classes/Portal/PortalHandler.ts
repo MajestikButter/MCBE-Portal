@@ -68,6 +68,21 @@ export class PortalHandler {
       y: Math.atan2(-vec.x, vec.z) * (inDegrees ? DEG : 1),
     };
   }
+
+  hasHostBlock(portal: Entity, dir: Vector) {
+    return Raycast.cast(
+      new Vector3(portal.location),
+      new Vector3(dir),
+      RaycastProperties.builder()
+        .collideWithLiquids(false)
+        .collideWithPassables(false)
+        .maxDistance(1)
+        .stopAfterEntities(false)
+        .build(),
+      portal.dimension
+    ).hitBlock();
+  }
+
   teleport(
     entity: Entity | Player,
     inP: {
@@ -169,21 +184,29 @@ export class PortalHandler {
 
     const outo = new EntityQueryOptions();
     outo.closest = 1;
-    
+
     // Locks the query to the dimension
     ino.minDistance = 0;
     outo.minDistance = 0;
 
     for (const dim of this.dims) {
       for (const inPortal of dim.getEntities(ino)) {
+        if (inPortal.velocity.length()) inPortal.setVelocity(Vector.zero);
         // Get in face and direction
         const inFace = this.getFace(inPortal);
         const inDir = this.getDir(inPortal);
 
+        if (!this.hasHostBlock(inPortal, Vector.multiply(inDir, -1))) {
+          inPortal.triggerEvent("portal:remove");
+          continue;
+        }
+
         // Display particle
         inPortal.dimension.spawnParticle(
           particle,
-          new Vector3(inPortal.location).add(new Vector3(inDir).mul(0.1)).toLocation(),
+          new Vector3(inPortal.location)
+            .add(new Vector3(inDir).mul(0.1))
+            .toLocation(),
           new MolangVariableMap()
         );
 

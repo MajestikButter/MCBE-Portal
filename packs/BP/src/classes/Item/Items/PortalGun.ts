@@ -49,21 +49,23 @@ export class PortalGunItem extends Item {
     if (!cast.hitBlock()) return true;
 
     const face = cast.getBlockFace();
-    const dir = this.getDirByFace(face);
+    const dir = new Vector3(this.getDirByFace(face));
 
     // Offset portal spawn depending on direction vector
-    const colPos = new Vector3(cast.getBlock().location).add(new Vector3(dir));
+    const colPos = new Vector3(cast.getBlock().location).add(dir);
     colPos.x = !dir.x ? Math.floor(colPos.x) + 0.5 : colPos.x;
     colPos.y = !dir.y ? Math.floor(colPos.y) + 0.5 : colPos.y;
     colPos.z = !dir.z ? Math.floor(colPos.z) + 0.5 : colPos.z;
     colPos.x += dir.x < 0 ? 1 : 0;
     colPos.y += dir.y < 0 ? 1 : 0;
     colPos.z += dir.z < 0 ? 1 : 0;
+    colPos.add(dir.mul(0.05, new Vector3()));
 
-    // Decide portal color
+    // Get tags
     const colorTag = plr.isSneaking
       ? "<$mbp;portal=red;/>"
       : "<$mbp;portal=blue;/>";
+    const ownerTag = `<$mbp;owner=${player.uid};/>`;
 
     // Visualize raycast
     const dist = colPos.distance(cast.getOrigin());
@@ -78,12 +80,14 @@ export class PortalGunItem extends Item {
     // Check for existing portal around spawn location
     const o = new EntityQueryOptions();
     o.location = colPos.floor(new Vector3()).add(0, -1, 0).toLocation();
-    o.volume = new BlockAreaSize(1, 2, 1);
+    o.volume = new BlockAreaSize(0, 2, 0);
     o.type = "mbp:portal";
-    if (plr.dimension.getEntities(o)[Symbol.iterator]().next().value)
+    if (
+      Array.from(plr.dimension.getEntities(o)).filter((v) =>
+        v.hasTag(colorTag) ? !v.hasTag(ownerTag) : true
+      ).length
+    )
       return true;
-
-    const ownerTag = `<$mbp;owner=${player.uid};/>`;
 
     // Remove matching existing portal
     player.executeCommand(

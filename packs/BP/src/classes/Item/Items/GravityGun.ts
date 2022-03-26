@@ -5,6 +5,7 @@ import {
   Entity,
   EntityQueryOptions,
   EntityRaycastOptions,
+  Player,
   Vector,
 } from "mojang-minecraft";
 import { Item } from "../Item";
@@ -55,12 +56,13 @@ export class GravityGunItem extends Item {
       new Vector(0, (ent.headLocation.y - ent.location.y) / 2, 0)
     );
     const ePos = new Vector(ent.location.x, ent.location.y, ent.location.z);
-    ent.setVelocity(
-      Vector.multiply(
-        Vector.subtract(tPos, ePos).normalized(),
-        Math.min(Vector.distance(tPos, ePos) / 2, 2)
-      )
+    const vel = Vector.multiply(
+      Vector.subtract(tPos, ePos).normalized(),
+      Math.min(Vector.distance(tPos, ePos) / 2, 2)
     );
+    if (ent instanceof Player) {
+      MBCPlayer.getByPlayer(ent).setVelocity(vel);
+    } else ent.setVelocity(vel);
   }
 
   onHit(player: MBCPlayer): void {
@@ -70,6 +72,9 @@ export class GravityGunItem extends Item {
     GravityGunItem.plrEnts.set(plr.name, "");
     const ent = this.getEntById(entId, plr.dimension);
     if (!ent) return;
-    ent.setVelocity(Vector.multiply(plr.viewVector, 2));
+    const vel = Vector.multiply(plr.viewVector, 2);
+    if (ent instanceof Player) {
+      MBCPlayer.getByPlayer(ent).setVelocity(vel);
+    } else ent.setVelocity(vel);
   }
 }
