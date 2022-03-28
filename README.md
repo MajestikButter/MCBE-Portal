@@ -3,8 +3,8 @@ A minecraft bedrock add-on that brings portals to the bedrock edition of minecra
 
 ## How to Build
 ### Required
-- (Node.js)[https://nodejs.org/en/download/]
-- (Regolith)[https://bedrock-oss.github.io/regolith/]
+- [Node.js](https://nodejs.org/en/download/)
+- [Regolith](https://bedrock-oss.github.io/regolith/)
 
 ### Steps
 1. Clone the repository
